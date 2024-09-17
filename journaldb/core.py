@@ -22,26 +22,61 @@ core.py - db interaction
 # **********************************************************************
 """
 import json
+import os
+
+
+from whoosh import index
+from whoosh.fields import Schema, TEXT, ID, DATETIME
 
 
 from dbbase.core import DBBase
-from dbbase.models import Model, TextField, DateField
+from dbbase.models import Model, IntegerField, TextField, TimestampField
+from dbbase.query import QueryableModel
 
 
-class JournalEntry(Model):
+class JournalEntry(Model, QueryableModel):
     table_name = "journal_entries"
 
+    id = IntegerField(primary_key=True)
     title = TextField(nullable=False)
     content = TextField(nullable=False)
-    date = DateField()
+    date = TimestampField(nullable=False)
     tags = TextField()  # Stored internally as json
 
     def __str__(self):
-        return f"<JournalEntry(title={self.title}, date={self.date}, tags={self.tags}, content_start={self.content[:50]})>"
+        return f"<JournalEntry(id={self.id}, title={self.title}, date={self.date}, tags={self.tags}, content_start={self.content[:50]})>"
 
 
-def init_journal_db(db_path: str):
+def init_journal_db(db_path: str, index_dir="indexdir"):
     db = DBBase(db_path)
     db.connect()
     JournalEntry.create_table(db)
-    return db
+    ix = init_whoosh_index(index_dir)
+    return db, ix
+
+
+def create_whoosh_schema():
+    """
+    Define the Whoosh schema for journal entries.
+    """
+    return Schema(
+        id=ID(stored=True, unique=True),  # Unique ID for the journal entry
+        title=TEXT(stored=True),
+        content=TEXT(stored=True),
+        date=DATETIME(stored=True),
+        tags=TEXT(stored=True)
+    )
+
+
+def init_whoosh_index(index_dir="indexdir"):
+    """
+    Initialize or open the Whoosh index.
+    """
+    if not os.path.exists(index_dir):
+        os.mkdir(index_dir)
+    if index.exists_in(index_dir):
+        ix = index.open_dir(index_dir)
+    else:
+        schema = create_whoosh_schema()
+        ix = index.create_in(index_dir, schema)
+    return ix
