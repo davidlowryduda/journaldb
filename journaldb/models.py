@@ -46,7 +46,7 @@ def add_entry_to_index(ix, entry_id, title, content, date, tags):
     writer.commit()
 
 
-def create_entry(db: DBBase, ix, title: str, content: str, date: str, tags: str = ""):
+def create_entry(db: DBBase, ix, title: str, content: str, date: datetime, tags: str = ""):
     """
     Create a new journal entry and index it with Whoosh.
     """
@@ -146,7 +146,7 @@ def search_entries(ix, query_str):
     with ix.searcher() as searcher:
         query = MultifieldParser(["title", "content", "tags"], schema=ix.schema).parse(query_str)
         results = searcher.search(query)
-        ret = [(result.items(), result.score) for result in results]
+        ret = [(dict(result.items()), result.score) for result in results]
         return ret
 
 
