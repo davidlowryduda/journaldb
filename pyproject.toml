@@ -24,9 +24,3 @@ dependencies = [
 
 [project.scripts]
 journaldb = "journaldb.cli:main"
-
-[tool.setuptools]
-package-dir = {"" = "journaldb"}
-
-[tool.setuptools.packages.find]
-where = ["journaldb"]

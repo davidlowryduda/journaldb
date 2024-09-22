@@ -81,6 +81,7 @@ def template_command(filename=None):
     if os.path.exists(filename):
         raise FileExistsError(f"The file '{filename}' already exists.")
     write_template_file(filename)
+    print(f"Template written at {filename}")
 
 
 def search_command(db, ix, query_str, full=False):
