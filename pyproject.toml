@@ -1,0 +1,32 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "journaldb"
+version = "0.0.1"
+description = "A journal database for managing and searching journal entries."
+readme = "README.md"
+requires-python = ">=3.8"
+license = { file = "LICENSE" }
+authors = [
+    { name = "David Lowry-Duda", email = "david@lowryduda.com" }
+]
+keywords = ["journal", "sqlite", "CLI",]
+classifiers = [
+    "Programming Language :: Python :: 3",
+]
+dependencies = [
+    "whoosh",
+    "dbbase",
+    "pyyaml"
+]
+
+[project.scripts]
+journaldb = "journaldb.cli:main"
+
+[tool.setuptools]
+package-dir = {"" = "journaldb"}
+
+[tool.setuptools.packages.find]
+where = ["journaldb"]
