@@ -62,6 +62,12 @@ def show_command(db, entry_id):
     print(f"Title: {entry['title']}\nDate: {entry['date']}\nTags: {entry['tags']}\n\nContent:\n{entry['content']}")
 
 
+def list_show_command(db):
+    entries = JournalEntry.all(db)
+    for entry in entries:
+        print(f"Id: {entry['id']} | Title: {entry['title']} | Date: {entry['date']}")
+
+
 def write_command(db, entry_id, filename=None):
     entry = JournalEntry.objects(db).get(id=entry_id)
     if not entry:
@@ -91,7 +97,7 @@ def search_command(db, ix, query_str, full=False):
 
 def make_parser():
     parser = argparse.ArgumentParser(
-        description="JournalDB Command Line Interface",
+        description="JournalDB Command Line Interface. See help for individual commands",
         epilog="Made by David Lowry-Duda <david@lowryduda.com>."
     )
 
@@ -101,9 +107,6 @@ def make_parser():
 
     subparsers = parser.add_subparsers(dest='command', required=True)
 
-    parser_initdb = subparsers.add_parser('initdb', help="Initialize database")
-    parser_initdb.add_argument('--create', action='store_true', help="Create db files")
-
     parser_add = subparsers.add_parser('add', help='Add a new journal entry from a file')
     parser_add.add_argument('filename', help='The file to add to the database')
 
@@ -111,7 +114,8 @@ def make_parser():
     parser_update.add_argument('filename', help='The file to update in the database')
 
     parser_show = subparsers.add_parser('show', help='Show a journal entry by ID')
-    parser_show.add_argument('id', type=int, help='The ID of the journal entry to show')
+    parser_show.add_argument('id', type=int, nargs='?', default=0, help='The ID of the journal entry to show')
+    parser_show.add_argument('--list', action='store_true', help='Show all entries')
 
     parser_write = subparsers.add_parser('write', help='Write a journal entry to a file')
     parser_write.add_argument('id', type=int, help='The ID of the journal entry to write to a file')
@@ -135,14 +139,17 @@ def main():
         db_path, os.path.join(args.dbdir, "searchindex")
     )
 
-#    if args.command == 'initdb':
-#        if args.create:
     if args.command == 'add':
         add_command(db, ix, args.filename)
     elif args.command == 'update':
         update_command(db, ix, args.filename)
     elif args.command == 'show':
-        show_command(db, args.id)
+        if args.list:
+            list_show_command(db)
+        else:
+            if args.id == 0:
+                raise ValueError(f"Entry 0 doesn't exist. Please provide valid entry id.")
+            show_command(db, args.id)
     elif args.command == 'write':
         write_command(db, args.id, args.filename)
     elif args.command == 'template':
